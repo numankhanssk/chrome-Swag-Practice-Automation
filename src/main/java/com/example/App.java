@@ -4,65 +4,87 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.JavascriptExecutor;
+
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
 import java.time.Duration;
 
-public class App 
-{
-    public static void main(String[] args) throws InterruptedException
-    {
-        // Initialize ChromeDriver
-        WebDriver driver = new ChromeDriver();
+public class App {
+
+    public static void main(String[] args) throws InterruptedException {
+
+        // Jenkins-safe Chrome setup
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless=new");
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--disable-gpu");
+        options.addArguments("--remote-allow-origins=*");
+
+        WebDriver driver = new ChromeDriver(options);
         driver.manage().window().maximize();
-        
-// Sauce Demo 
-        driver.get("https://www.saucedemo.com/");
-        driver.findElement(By.id("user-name")).sendKeys("standard_user");
-        driver.findElement(By.id("password")).sendKeys("secret_sauce");
-        driver.findElement(By.id("login-button")).click();
-        Thread.sleep(3000); // 3 sec delay to see it
-        
-// Practice Test Automation
-        driver.get("https://practicetestautomation.com/practice-test-login/");
-        driver.findElement(By.id("username")).sendKeys("student");
-        driver.findElement(By.id("password")).sendKeys("Password123");
-        driver.findElement(By.id("submit")).click();
-        Thread.sleep(3000); // 3 sec delay to see it
 
-        
-// Automation Exercise
-        driver.get("https://automationexercise.com/");
+        try {
 
-        // Create explicit wait
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            // =========================
+            // 1. SAUCE DEMO
+            // =========================
+            driver.get("https://www.saucedemo.com/");
+            driver.findElement(By.id("user-name")).sendKeys("standard_user");
+            driver.findElement(By.id("password")).sendKeys("secret_sauce");
+            driver.findElement(By.id("login-button")).click();
+            Thread.sleep(2000);
 
-        // -------------------------------
-        // Step 1: Click on Products link
-        // -------------------------------
-        WebElement productsLink = driver.findElement(By.cssSelector("a[href='/products']"));
-        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", productsLink);
-        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", productsLink);
-        Thread.sleep(2000); // 2 sec delay to see it
+            // =========================
+            // 2. PRACTICE TEST AUTOMATION
+            // =========================
+            driver.get("https://practicetestautomation.com/practice-test-login/");
+            driver.findElement(By.id("username")).sendKeys("student");
+            driver.findElement(By.id("password")).sendKeys("Password123");
+            driver.findElement(By.id("submit")).click();
+            Thread.sleep(2000);
 
-        // -------------------------------
-        // Step 2: Click Add to Cart button
-        // -------------------------------
-        WebElement addToCart = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("a.add-to-cart")));
-        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", addToCart);
-        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", addToCart);
-        Thread.sleep(2000); // 2 sec delay to see the modal
+            // =========================
+            // 3. AUTOMATION EXERCISE
+            // =========================
+            driver.get("https://automationexercise.com/");
 
-        // -------------------------------
-        // Step 3: Close modal popup
-        // -------------------------------
-        WebElement closeBtn = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button.close-modal")));
-        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", closeBtn);
-        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", closeBtn);
-        Thread.sleep(2000); // 2 sec delay to see it close
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-        // Optional: close browser
-        driver.quit();
+            // Step 1: Products click
+            WebElement productsLink = wait.until(
+                    ExpectedConditions.elementToBeClickable(By.cssSelector("a[href='/products']"))
+            );
+
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", productsLink);
+            Thread.sleep(2000);
+
+            // Step 2: Add to cart (FIXED selector)
+            WebElement addToCart = wait.until(
+                    ExpectedConditions.elementToBeClickable(By.cssSelector(".add-to-cart"))
+            );
+
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", addToCart);
+            Thread.sleep(2000);
+
+            // Step 3: Close modal (FIXED selector)
+            WebElement closeBtn = wait.until(
+                    ExpectedConditions.elementToBeClickable(By.cssSelector(".close-modal"))
+            );
+
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", closeBtn);
+            Thread.sleep(2000);
+
+            System.out.println("ALL TESTS COMPLETED SUCCESSFULLY");
+
+        } catch (Exception e) {
+            System.out.println("ERROR: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            driver.quit();
+        }
     }
 }
