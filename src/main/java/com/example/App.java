@@ -14,15 +14,24 @@ import java.time.Duration;
 
 public class App {
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
 
-        // Jenkins-safe Chrome setup
+        // =========================
+        // FIX FOR JENKINS CHROME
+        // =========================
         ChromeOptions options = new ChromeOptions();
+
         options.addArguments("--headless=new");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--disable-gpu");
-        options.addArguments("--remote-allow-origins=*");
+        options.addArguments("--window-size=1920,1080");
+
+        // IMPORTANT FIX FOR "Chrome instance exited"
+        options.addArguments("--remote-debugging-port=9222");
+        options.addArguments("--disable-extensions");
+        options.addArguments("--disable-setuid-sandbox");
+        options.addArguments("--disable-software-rasterizer");
 
         WebDriver driver = new ChromeDriver(options);
         driver.manage().window().maximize();
@@ -36,6 +45,7 @@ public class App {
             driver.findElement(By.id("user-name")).sendKeys("standard_user");
             driver.findElement(By.id("password")).sendKeys("secret_sauce");
             driver.findElement(By.id("login-button")).click();
+
             Thread.sleep(2000);
 
             // =========================
@@ -45,6 +55,7 @@ public class App {
             driver.findElement(By.id("username")).sendKeys("student");
             driver.findElement(By.id("password")).sendKeys("Password123");
             driver.findElement(By.id("submit")).click();
+
             Thread.sleep(2000);
 
             // =========================
@@ -54,28 +65,28 @@ public class App {
 
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-            // Step 1: Products click
+            // Step 1: Products
             WebElement productsLink = wait.until(
                     ExpectedConditions.elementToBeClickable(By.cssSelector("a[href='/products']"))
             );
-
             ((JavascriptExecutor) driver).executeScript("arguments[0].click();", productsLink);
+
             Thread.sleep(2000);
 
-            // Step 2: Add to cart (FIXED selector)
+            // Step 2: Add to cart
             WebElement addToCart = wait.until(
                     ExpectedConditions.elementToBeClickable(By.cssSelector(".add-to-cart"))
             );
-
             ((JavascriptExecutor) driver).executeScript("arguments[0].click();", addToCart);
+
             Thread.sleep(2000);
 
-            // Step 3: Close modal (FIXED selector)
+            // Step 3: Close modal
             WebElement closeBtn = wait.until(
                     ExpectedConditions.elementToBeClickable(By.cssSelector(".close-modal"))
             );
-
             ((JavascriptExecutor) driver).executeScript("arguments[0].click();", closeBtn);
+
             Thread.sleep(2000);
 
             System.out.println("ALL TESTS COMPLETED SUCCESSFULLY");
