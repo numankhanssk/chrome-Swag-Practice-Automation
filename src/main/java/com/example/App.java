@@ -7,36 +7,36 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.JavascriptExecutor;
 
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
-
-import java.time.Duration;
+import io.github.bonigarcia.wdm.WebDriverManager;
 
 public class App {
 
     public static void main(String[] args) {
 
-        // =========================
-        // FIX FOR JENKINS CHROME
-        // =========================
-        ChromeOptions options = new ChromeOptions();
-
-        options.addArguments("--headless=new");
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--disable-gpu");
-        options.addArguments("--window-size=1920,1080");
-
-        // IMPORTANT FIX FOR "Chrome instance exited"
-        options.addArguments("--remote-debugging-port=9222");
-        options.addArguments("--disable-extensions");
-        options.addArguments("--disable-setuid-sandbox");
-        options.addArguments("--disable-software-rasterizer");
-
-        WebDriver driver = new ChromeDriver(options);
-        driver.manage().window().maximize();
-
         try {
+
+            // Clean driver setup (IMPORTANT FIX)
+            WebDriverManager.chromedriver().clearDriverCache().setup();
+
+            // =========================
+            // CHROME OPTIONS (JENKINS FIX)
+            // =========================
+            ChromeOptions options = new ChromeOptions();
+
+            options.addArguments("--headless=new");
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
+            options.addArguments("--disable-gpu");
+            options.addArguments("--window-size=1920,1080");
+
+            // CRITICAL STABILITY FIX
+            options.addArguments("--single-process");
+            options.addArguments("--disable-extensions");
+            options.addArguments("--disable-blink-features=AutomationControlled");
+
+            WebDriver driver = new ChromeDriver(options);
+
+            driver.manage().window().maximize();
 
             // =========================
             // 1. SAUCE DEMO
@@ -49,7 +49,7 @@ public class App {
             Thread.sleep(2000);
 
             // =========================
-            // 2. PRACTICE TEST AUTOMATION
+            // 2. PRACTICE TEST LOGIN
             // =========================
             driver.get("https://practicetestautomation.com/practice-test-login/");
             driver.findElement(By.id("username")).sendKeys("student");
@@ -63,39 +63,31 @@ public class App {
             // =========================
             driver.get("https://automationexercise.com/");
 
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-
-            // Step 1: Products
-            WebElement productsLink = wait.until(
-                    ExpectedConditions.elementToBeClickable(By.cssSelector("a[href='/products']"))
-            );
-            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", productsLink);
+            // Step 1: Click Products
+            WebElement products = driver.findElement(By.cssSelector("a[href='/products']"));
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", products);
 
             Thread.sleep(2000);
 
             // Step 2: Add to cart
-            WebElement addToCart = wait.until(
-                    ExpectedConditions.elementToBeClickable(By.cssSelector(".add-to-cart"))
-            );
+            WebElement addToCart = driver.findElement(By.cssSelector(".add-to-cart"));
             ((JavascriptExecutor) driver).executeScript("arguments[0].click();", addToCart);
 
             Thread.sleep(2000);
 
             // Step 3: Close modal
-            WebElement closeBtn = wait.until(
-                    ExpectedConditions.elementToBeClickable(By.cssSelector(".close-modal"))
-            );
+            WebElement closeBtn = driver.findElement(By.cssSelector(".close-modal"));
             ((JavascriptExecutor) driver).executeScript("arguments[0].click();", closeBtn);
 
             Thread.sleep(2000);
 
-            System.out.println("ALL TESTS COMPLETED SUCCESSFULLY");
+            System.out.println("ALL TESTS PASSED SUCCESSFULLY");
+
+            driver.quit();
 
         } catch (Exception e) {
-            System.out.println("ERROR: " + e.getMessage());
+            System.out.println("ERROR OCCURRED:");
             e.printStackTrace();
-        } finally {
-            driver.quit();
         }
     }
 }
